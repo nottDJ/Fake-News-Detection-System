@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 AI Fake News Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .processing-info {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            border-radius: 25px;
+            padding: 10px 20px;
+            margin: 15px auto 10px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            color: #4CAF50;
+        }
+
+        .info-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .quota-status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 10px 20px;
+            margin-top: 15px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-indicator {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .input-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #e1e5e9;
+        }
+
+        .input-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .input-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .input-tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .input-content {
+            display: none;
+        }
+
+        .input-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .news-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 20px;
+            border: 3px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .news-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            background: #e3f2fd;
+            border-color: #4CAF50;
+        }
+
+        .file-upload-area.dragover {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .file-upload-text {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-hint {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .selected-file {
+            background: #e8f5e8;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .selected-file.show {
+            display: block;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        .remove-file {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .input-type-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .verdict-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .verdict-true {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .verdict-false {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .verdict-uncertain {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .verdict-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .verdict-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .score-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border-left: 5px solid #667eea;
+        }
+
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .analysis-details {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .detail-title::before {
+            content: "📋";
+            margin-right: 10px;
+        }
+
+        .detail-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 5px solid #f44336;
+        }
+
+        .quota-error {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 5px solid #ffc107;
+        }
+
+        .quota-error a {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 40px;
+        }
+
+        .example-news {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .example-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .example-text {
+            color: #1565c0;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .supported-formats {
+            background: #f3e5f5;
+            border: 2px solid #9c27b0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .formats-title {
+            font-weight: 600;
+            color: #7b1fa2;
+            margin-bottom: 10px;
+        }
+
+        .formats-list {
+            color: #6a1b9a;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .input-section, .results-section {
+                padding: 25px;
+            }
+            
+            .verdict-text {
+                font-size: 2rem;
+            }
+            
+            .scores-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+                    <div class="header">
+                <h1>🔍 AI Fake News Detector</h1>
+                <p>Powered by OpenAI GPT-4 + Enhanced Multi-Source Fact-Checking</p>
+                <p class="subtitle">Analyze news articles, social media posts, claims, audio, and images for authenticity</p>
+                <div class="processing-info">
+                    <span class="info-icon">💡</span>
+                    <span class="info-text">Enhanced fact-checking: When OpenAI returns FALSE/UNCERTAIN, automatically searches Wikipedia, Google News, and Google Search!</span>
+                </div>
+                <div class="processing-info">
+                    <span class="info-icon">🖼️</span>
+                    <span class="info-text">Local image analysis: OCR + Context Detection + Visual Analysis - No OpenAI quota needed!</span>
+                </div>
+                <div class="quota-status" id="quotaStatus">
+                    <span class="status-indicator" id="statusIndicator">🟡</span>
+                    <span class="status-text" id="statusText">Checking API status...</span>
+                </div>
+            </div>
+
+        <div class="input-section">
+            <div class="input-tabs">
+                <button class="input-tab active" onclick="switchTab('text')">📝 Text Input</button>
+                <button class="input-tab" onclick="switchTab('file')">📁 File Upload</button>
+            </div>
+
+            <!-- Text Input Tab -->
+            <div id="textTab" class="input-content active">
+                <div class="input-group">
+                    <label for="newsInput" class="input-label">📰 Enter the news text or claim to analyze:</label>
+                    <textarea 
+                        id="newsInput" 
+                        class="news-input" 
+                        placeholder="Paste the news article, social media post, or claim you want to fact-check here..."
+                        maxlength="2000"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- File Upload Tab -->
+            <div id="fileTab" class="input-content">
+                <div class="input-group">
+                    <label class="input-label">📁 Upload a file to analyze:</label>
+                    <div class="file-upload-area" onclick="document.getElementById('fileInput').click()" id="uploadArea">
+                        <div class="file-upload-icon">📁</div>
+                        <div class="file-upload-text">Click to upload or drag & drop</div>
+                        <div class="file-upload-hint">Supports: Images, Audio, Documents</div>
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.bmp,.mp3,.wav,.m4a,.aac,.ogg">
+                    
+                    <div class="selected-file" id="selectedFile">
+                        <div class="file-info">
+                            <span class="file-name" id="fileName">-</span>
+                            <button class="remove-file" onclick="removeFile()">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="analyzeBtn" class="analyze-btn" onclick="analyzeContent()">
+                🔍 Analyze Content
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>🤖 AI is analyzing your content...</p>
+                <p>This may take a few moments</p>
+            </div>
+
+            <div class="example-news">
+                <div class="example-title">💡 Example content to test:</div>
+                <div class="example-text">
+                    <strong>Text:</strong> "Scientists discover that drinking 8 glasses of water daily can cure all diseases and make you live forever. This breakthrough research was conducted by Dr. Smith at Harvard University."<br><br>
+                    <strong>Audio:</strong> Record yourself saying a claim or upload an audio file<br><br>
+                    <strong>Image:</strong> Upload any image - enhanced analysis detects text, context, claims, and visual elements
+                </div>
+            </div>
+
+            <div class="supported-formats">
+                <div class="formats-title">📋 Supported File Formats:</div>
+                <div class="formats-list">
+                    <strong>Images:</strong> PNG, JPG, JPEG, GIF, BMP (OCR text extraction)<br>
+                    <strong>Audio:</strong> MP3, WAV, M4A, AAC, OGG (Speech-to-text)<br>
+                    <strong>Documents:</strong> TXT, PDF, DOC, DOCX (Text extraction)
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="input-type-badge" id="inputTypeBadge">-</div>
+            
+            <div class="verdict-header" id="verdictHeader">
+                <div class="verdict-text" id="verdictText">-</div>
+                <div class="verdict-subtitle" id="verdictSubtitle">-</div>
+            </div>
+
+            <div class="scores-grid">
+                <div class="score-card">
+                    <div class="score-value" id="confidenceScore">-</div>
+                    <div class="score-label">Confidence Score</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value" id="credibilityScore">-</div>
+                    <div class="score-label">Credibility Score</div>
+                </div>
+            </div>
+
+            <div class="analysis-details">
+                <div class="detail-section">
+                    <div class="detail-title">AI Reasoning</div>
+                    <div class="detail-content" id="reasoning">-</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-title">Fact Check Notes</div>
+                    <div class="detail-content" id="factCheckNotes">-</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-title">Risk Factors</div>
+                    <div class="detail-content" id="riskFactors">-</div>
+                </div>
+
+                <div class="detail-section" id="extractedContentSection" style="display: none;">
+                    <div class="detail-title">Extracted Content</div>
+                    <div class="detail-content" id="extractedContent">-</div>
+                </div>
+
+                <div class="detail-section" id="imageAnalysisSection" style="display: none;">
+                    <div class="detail-title">Image Analysis</div>
+                    <div class="detail-content" id="imageAnalysis">-</div>
+                </div>
+
+                <div class="detail-section" id="visualElementsSection" style="display: none;">
+                    <div class="detail-title">Visual Elements</div>
+                    <div class="detail-content" id="visualElements">-</div>
+                </div>
+
+                <div class="detail-section" id="enhancedAnalysisSection" style="display: none;">
+                    <div class="detail-title">🔍 Enhanced Analysis (Additional Sources)</div>
+                    <div class="detail-content" id="enhancedAnalysis">-</div>
+                </div>
+
+                <div class="detail-section" id="wikipediaSection" style="display: none;">
+                    <div class="detail-title">📚 Wikipedia Sources</div>
+                    <div class="detail-content" id="wikipediaSources">-</div>
+                </div>
+
+                <div class="detail-section" id="newsSection" style="display: none;">
+                    <div class="detail-title">📰 Google News Sources</div>
+                    <div class="detail-content" id="newsSources">-</div>
+                </div>
+
+                <div class="detail-section" id="searchSection" style="display: none;">
+                    <div class="detail-title">🔍 Google Search Sources</div>
+                    <div class="detail-content" id="searchSources">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2025 AI Fake News Detector. Built with OpenAI GPT-4 and Flask ❤️</p>
+        </div>
+    </div>
+
+    <script>
+        let isAnalyzing = false;
+        let currentTab = 'text';
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.input-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.input-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Clear previous results
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('analyzeBtn').textContent = '⏳ Analyzing...';
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('analyzeBtn').textContent = '🔍 Analyze Content';
+        }
+
+        function showError(message, isQuotaError = false) {
+            hideLoading();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = isQuotaError ? 'error-message quota-error' : 'error-message';
+            
+            let errorContent = `<strong>❌ Error:</strong> ${message}`;
+            
+            if (isQuotaError) {
+                errorContent += `
+                    <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <strong>💡 Solutions:</strong>
+                        <ul style="margin: 10px 0 0 20px; text-align: left;">
+                            <li>Check your OpenAI billing at <a href="https://platform.openai.com/account/billing" target="_blank">platform.openai.com</a></li>
+                            <li>Try text input instead of image upload</li>
+                            <li>Wait for quota reset or add funds to your account</li>
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            errorDiv.innerHTML = errorContent;
+            
+            const inputSection = document.querySelector('.input-section');
+            inputSection.appendChild(errorDiv);
+            
+            // Remove error after 10 seconds for quota errors
+            setTimeout(() => {
+                errorDiv.remove();
+            }, isQuotaError ? 10000 : 5000);
+        }
+
+        function updateVerdictDisplay(data) {
+            const verdictHeader = document.getElementById('verdictHeader');
+            const verdictText = document.getElementById('verdictText');
+            const verdictSubtitle = document.getElementById('verdictSubtitle');
+            
+            // Remove existing classes
+            verdictHeader.className = 'verdict-header';
+            
+            // Set verdict text and styling
+            switch(data.verdict.toUpperCase()) {
+                case 'TRUE':
+                    verdictText.textContent = '✅ TRUE';
+                    verdictHeader.classList.add('verdict-true');
+                    verdictSubtitle.textContent = 'This content appears to be credible and factual';
+                    break;
+                case 'FALSE':
+                    verdictText.textContent = '❌ FALSE';
+                    verdictHeader.classList.add('verdict-false');
+                    verdictSubtitle.textContent = 'This content appears to be false or misleading';
+                    break;
+                case 'UNCERTAIN':
+                    verdictText.textContent = '❓ UNCERTAIN';
+                    verdictHeader.classList.add('verdict-uncertain');
+                    verdictSubtitle.textContent = 'Unable to determine with high confidence';
+                    break;
+                default:
+                    verdictText.textContent = '❓ UNCERTAIN';
+                    verdictHeader.classList.add('verdict-uncertain');
+                    verdictSubtitle.textContent = 'Analysis completed but verdict unclear';
+            }
+        }
+
+        function updateScores(data) {
+            // Update confidence score
+            const confidenceScore = document.getElementById('confidenceScore');
+            if (data.confidence_score !== undefined) {
+                confidenceScore.textContent = Math.round(data.confidence_score * 100) + '%';
+            } else {
+                confidenceScore.textContent = 'N/A';
+            }
+            
+            // Update credibility score
+            const credibilityScore = document.getElementById('credibilityScore');
+            if (data.credibility_score !== undefined) {
+                credibilityScore.textContent = Math.round(data.credibility_score * 100) + '%';
+            } else {
+                credibilityScore.textContent = 'N/A';
+            }
+        }
+
+        function updateAnalysisDetails(data) {
+            // Update reasoning
+            document.getElementById('reasoning').textContent = data.reasoning || 'No reasoning provided';
+            
+            // Update fact check notes
+            document.getElementById('factCheckNotes').textContent = data.fact_check_notes || 'No fact check notes provided';
+            
+            // Update risk factors
+            document.getElementById('riskFactors').textContent = data.risk_factors || 'No risk factors identified';
+            
+            // Update extracted content if available
+            if (data.extracted_content) {
+                document.getElementById('extractedContent').textContent = data.extracted_content;
+                document.getElementById('extractedContentSection').style.display = 'block';
+            } else {
+                document.getElementById('extractedContentSection').style.display = 'none';
+            }
+
+            // Update enhanced image analysis if available
+            if (data.image_context && data.input_type === 'image') {
+                // Show image analysis section
+                document.getElementById('imageAnalysisSection').style.display = 'block';
+                
+                // Create comprehensive image analysis display
+                let imageAnalysisText = `📋 Image Type: ${data.image_type || 'Unknown'}\n\n`;
+                imageAnalysisText += `🖼️ Context: ${data.image_context}\n\n`;
+                imageAnalysisText += `🎯 Claims Found: ${data.claims_found || 'None detected'}\n\n`;
+                imageAnalysisText += `⚠️ Suspicious Elements: ${data.suspicious_elements || 'None detected'}`;
+                
+                if (data.image_metadata) {
+                    imageAnalysisText += `\n\n📊 Metadata: ${data.image_metadata}`;
+                }
+                
+                document.getElementById('imageAnalysis').textContent = imageAnalysisText;
+            } else {
+                document.getElementById('imageAnalysisSection').style.display = 'none';
+            }
+
+            // Update visual elements if available
+            if (data.visual_elements && data.visual_elements.length > 0) {
+                document.getElementById('visualElements').textContent = data.visual_elements.join(', ');
+                document.getElementById('visualElementsSection').style.display = 'block';
+            } else {
+                document.getElementById('visualElementsSection').style.display = 'none';
+            }
+
+            // Update enhanced analysis if available
+            if (data.enhanced_analysis && data.analysis_type === 'enhanced_with_additional_apis') {
+                const enhanced = data.enhanced_analysis;
+                
+                // Show enhanced analysis summary
+                document.getElementById('enhancedAnalysis').textContent = enhanced.summary || 'No enhanced analysis available';
+                document.getElementById('enhancedAnalysisSection').style.display = 'block';
+                
+                // Show Wikipedia sources
+                if (enhanced.wikipedia && enhanced.wikipedia.length > 0) {
+                    let wikiContent = '';
+                    enhanced.wikipedia.forEach((item, index) => {
+                        wikiContent += `${index + 1}. <strong>${item.title}</strong>\n`;
+                        wikiContent += `   ${item.summary}\n`;
+                        wikiContent += `   <a href="${item.url}" target="_blank">Read more</a>\n\n`;
+                    });
+                    document.getElementById('wikipediaSources').innerHTML = wikiContent;
+                    document.getElementById('wikipediaSection').style.display = 'block';
+                } else {
+                    document.getElementById('wikipediaSection').style.display = 'none';
+                }
+                
+                // Show Google News sources
+                if (enhanced.google_news && enhanced.google_news.length > 0) {
+                    let newsContent = '';
+                    enhanced.google_news.forEach((item, index) => {
+                        newsContent += `${index + 1}. <strong>${item.title}</strong> (${item.source})\n`;
+                        newsContent += `   ${item.description}\n`;
+                        newsContent += `   <a href="${item.url}" target="_blank">Read more</a>\n\n`;
+                    });
+                    document.getElementById('newsSources').innerHTML = newsContent;
+                    document.getElementById('newsSection').style.display = 'block';
+                } else {
+                    document.getElementById('newsSection').style.display = 'none';
+                }
+                
+                // Show Google Search sources
+                if (enhanced.google_search && enhanced.google_search.length > 0) {
+                    let searchContent = '';
+                    enhanced.google_search.forEach((item, index) => {
+                        searchContent += `${index + 1}. <strong>${item.title}</strong> (${item.source})\n`;
+                        searchContent += `   ${item.snippet}\n`;
+                        searchContent += `   <a href="${item.url}" target="_blank">Visit site</a>\n\n`;
+                    });
+                    document.getElementById('searchSources').innerHTML = searchContent;
+                    document.getElementById('searchSection').style.display = 'block';
+                } else {
+                    document.getElementById('searchSection').style.display = 'none';
+                }
+            } else {
+                // Hide enhanced analysis sections
+                document.getElementById('enhancedAnalysisSection').style.display = 'none';
+                document.getElementById('wikipediaSection').style.display = 'none';
+                document.getElementById('newsSection').style.display = 'none';
+                document.getElementById('searchSection').style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            // Update input type badge
+            const inputTypeBadge = document.getElementById('inputTypeBadge');
+            inputTypeBadge.textContent = data.input_type ? data.input_type.toUpperCase() : 'UNKNOWN';
+            
+            updateVerdictDisplay(data);
+            updateScores(data);
+            updateAnalysisDetails(data);
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        async function analyzeContent() {
+            if (isAnalyzing) return;
+            
+            isAnalyzing = true;
+            showLoading();
+            
+            try {
+                let response;
+                
+                if (currentTab === 'text') {
+                    const newsText = document.getElementById('newsInput').value.trim();
+                    
+                    if (!newsText) {
+                        showError('Please enter some text to analyze.');
+                        return;
+                    }
+                    
+                    if (newsText.length < 10) {
+                        showError('Please enter at least 10 characters for meaningful analysis.');
+                        return;
+                    }
+                    
+                    response = await fetch('/api/verify-news', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ news_text: newsText })
+                    });
+                } else {
+                    const fileInput = document.getElementById('fileInput');
+                    const file = fileInput.files[0];
+                    
+                    if (!file) {
+                        showError('Please select a file to analyze.');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    response = await fetch('/api/verify-news', {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    const errorMessage = data.error || 'Failed to analyze content. Please try again.';
+                    const isQuotaError = errorMessage.toLowerCase().includes('quota') || 
+                                       errorMessage.toLowerCase().includes('billing') ||
+                                       errorMessage.toLowerCase().includes('exceeded');
+                    showError(errorMessage, isQuotaError);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                isAnalyzing = false;
+                hideLoading();
+            }
+        }
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('selectedFile').classList.add('show');
+            }
+        });
+
+        function removeFile() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('selectedFile').classList.remove('show');
+            document.getElementById('fileName').textContent = '-';
+        }
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                document.getElementById('fileName').textContent = files[0].name;
+                document.getElementById('selectedFile').classList.add('show');
+            }
+        });
+
+        // Allow Enter key to submit (Shift+Enter for new line)
+        document.getElementById('newsInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyzeContent();
+            }
+        });
+
+        // Auto-resize textarea
+        document.getElementById('newsInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+        });
+
+        // Check API status on page load
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch('/api/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    const statusIndicator = document.getElementById('statusIndicator');
+                    const statusText = document.getElementById('statusText');
+                    
+                    if (config.api_key_configured) {
+                        statusIndicator.textContent = '🟢';
+                        statusText.textContent = 'API ready';
+                    } else {
+                        statusIndicator.textContent = '🔴';
+                        statusText.textContent = 'API key not configured';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to check API status:', error);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAPIStatus();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+flask==3.0.3
+python-dotenv==1.0.1
+requests==2.32.3
+openai==0.28.1
+Pillow==10.0.1
+SpeechRecognition==3.10.0
+pydub==0.25.1
+python-multipart==0.0.6
+pytesseract==0.3.10
+numpy<2.0
+opencv-python==4.8.1.78
+beautifulsoup4==4.12.2
+wikipedia-api==0.6.0
