@@ -13,12 +13,12 @@ from bs4 import BeautifulSoup
 import urllib.parse
 from speech_to_text import transcribe_audio_file
 
-# Load environment variables
+# Load environment variables - support both .env file and Vercel environment variables
 load_dotenv('config.env')
 
 app = Flask(__name__)
 
-# Configuration
+# Configuration - support Vercel environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'sk-REPLACE_ME')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 
@@ -1123,6 +1123,3 @@ def verify_news():
         return jsonify({'error': f'OpenAI API error: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
